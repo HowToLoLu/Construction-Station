@@ -249,6 +249,10 @@
 	else
 		return ..()
 
+/obj/item/circuitboard/computer/libraryconsole/examine(mob/user)
+	. = ..()
+	. += "<span class='notice'>You can change the access protocols with a <b>screwdriver</b>.</span>"
+
 /obj/item/circuitboard/computer/olddoor
 	name = "DoorMex (Computer Board)"
 	icon_state = "generic"
