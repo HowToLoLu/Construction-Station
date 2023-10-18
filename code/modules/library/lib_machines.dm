@@ -10,6 +10,11 @@
  */
 
 
+//TGUI stuff
+#define UI_STATE_MAIN_MENU	0
+#define UI_STATE_DATABASE	1
+#define UI_STATE_SCANNER	2
+#define UI_STATE_INVENTORY	3
 
 /*
  * Library Public Computer
@@ -35,10 +40,11 @@
 	var/category = "Any"
 	var/author
 	var/search_page = 0
-
-/obj/machinery/computer/libraryconsole/ui_interact(mob/user)
+/*
+/obj/machinery/computer/libraryconsole/proc/old_ui_interact(mob/user)
 	. = ..()
 	var/list/dat = list() // <META HTTP-EQUIV='Refresh' CONTENT='10'>
+	var/screenstate = 0 //Normally outside- in here for the time being
 	switch(screenstate)
 		if(0)
 			dat += "<h2>Search Settings</h2><br>"
@@ -148,6 +154,7 @@
 	src.add_fingerprint(usr)
 	src.updateUsrDialog()
 	return
+*/
 
 /*
  * Borrowbook datum
@@ -203,12 +210,11 @@ GLOBAL_LIST(cachedbooks) // List of our cached book datums
 /obj/machinery/computer/libraryconsole/bookmanagement
 	name = "book inventory management console"
 	desc = "Librarian's command station."
-	screenstate = 0 // 0 - Main Menu, 1 - Inventory, 2 - Checked Out, 3 - Check Out a Book
 	verb_say = "beeps"
 	verb_ask = "beeps"
 	verb_exclaim = "beeps"
 	pass_flags = PASSTABLE
-	var/arcanecheckout = 0
+	var/screen = UI_STATE_MAIN_MENU
 	var/buffer_book
 	var/buffer_mob
 	var/upload_category = "Fiction"
@@ -236,15 +242,59 @@ GLOBAL_LIST(cachedbooks) // List of our cached book datums
 			libcomp_menu[page] = ""
 		libcomp_menu[page] += "<tr><td>[C.author]</td><td>[C.title]</td><td>[C.category]</td><td><A href='?src=[REF(src)];targetid=[C.id]'>\[Order\]</A></td></tr>\n"
 
-/obj/machinery/computer/libraryconsole/bookmanagement/Initialize(mapload)
+/obj/machinery/computer/libraryconsole/bookmanagement/multitool_act(mob/living/user, obj/item/I)
 	. = ..()
-	if(circuit)
-		circuit.name = "Book Inventory Management Console (Machine Board)"
-		circuit.build_path = /obj/machinery/computer/libraryconsole/bookmanagement
 
-/obj/machinery/computer/libraryconsole/bookmanagement/ui_interact(mob/user)
-	. = ..()
+/obj/machinery/computer/libraryconsole/bookmanagement/ui_interact(mob/user, datum/tgui/ui)
+	ui = SStgui.try_update_ui(user, src, ui)
+	if(!ui)
+		ui = new(user, src, "LibraryManagementConsole")
+		ui.open()
+
+/obj/machinery/computer/libraryconsole/bookmanagement/ui_data(mob/user)
+	var/list/data = list(
+		"forbidden_lore" = obj_flags & EMAGGED
+	)
+
+	return data
+
+/obj/machinery/computer/libraryconsole/bookmanagement/ui_act(action, params, datum/tgui/ui)
+	if(..())
+		return
+	//Navigation
+	switch(action)
+		if("view_inventory") // View General Inventory + Checked Out combined
+
+		if("access_database") //External Archive
+
+		if("access_scanner") //Check out/Upload
+
+		if("main_menu")
+
+
+		//Inventory
+
+		//Database
+
+		//Main Menu
+
+
+		if("corpo_book")
+
+		if("newscast_book")
+
+		if("access_forbidden_lore") //Access the Forbidden Lore Vault
+			if(obj_flags & EMAGGED)
+				print_forbidden_lore(ui.user)
+
+/obj/machinery/computer/libraryconsole/bookmanagement/ui_state()
+
+
+/*
+/obj/machinery/computer/libraryconsole/bookmanagement/proc/old_ui_interact(mob/user)
+//	. = ..()
 	var/dat = "" // <META HTTP-EQUIV='Refresh' CONTENT='10'>
+	var/screenstate = 0 // 0 - Main Menu, 1 - Inventory, 2 - Checked Out, 3 - Check Out a Book
 	switch(screenstate)
 		if(0)
 			// Main Menu
@@ -353,6 +403,7 @@ GLOBAL_LIST(cachedbooks) // List of our cached book datums
 	var/datum/browser/popup = new(user, "library", name, 600, 400)
 	popup.set_content(dat)
 	popup.open()
+*/
 
 /obj/machinery/computer/libraryconsole/bookmanagement/proc/findscanner(viewrange)
 	return locate(/obj/machinery/libraryscanner) in range(viewrange, get_turf(src))
@@ -381,7 +432,7 @@ GLOBAL_LIST(cachedbooks) // List of our cached book datums
 
 /obj/machinery/computer/libraryconsole/bookmanagement/should_emag(mob/user)
 	return density && ..()
-
+/*
 /obj/machinery/computer/libraryconsole/bookmanagement/Topic(href, href_list)
 	if(..())
 		usr << browse(null, "window=library")
@@ -549,7 +600,7 @@ GLOBAL_LIST(cachedbooks) // List of our cached book datums
 			say("Printer currently unavailable, please wait a moment.")
 	add_fingerprint(usr)
 	updateUsrDialog()
-
+*/
 /*
  * Library Scanner
  */
@@ -560,6 +611,15 @@ GLOBAL_LIST(cachedbooks) // List of our cached book datums
 	desc = "It servers the purpose of scanning stuff."
 	density = TRUE
 	var/obj/item/book/cache		// Last scanned book
+
+/obj/machinery/libraryscanner/ui_interact(mob/user, datum/tgui/ui)
+	ui = SStgui.try_update_ui(user, src, ui)
+	if(!ui)
+		ui = new(user, src, "LibraryScanner")
+		ui.open()
+/obj/machinery/libraryscanner/ui_act(action, params)
+/obj/machinery/libraryscanner/ui_data(mob/user)
+/obj/machinery/libraryscanner/ui_state(mob/user)
 
 /obj/machinery/libraryscanner/attackby(obj/O, mob/user, params)
 	if(istype(O, /obj/item/book))
@@ -653,3 +713,8 @@ GLOBAL_LIST(cachedbooks) // List of our cached book datums
 			qdel(P)
 		else
 			P.forceMove(drop_location())
+
+#undef UI_STATE_MAIN_MENU
+#undef UI_STATE_DATABASE
+#undef UI_STATE_SCANNER
+#undef UI_STATE_INVENTORY
