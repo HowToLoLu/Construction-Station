@@ -156,6 +156,34 @@
 	return
 */
 
+/obj/machinery/computer/libraryconsole/ui_interact(mob/user, datum/tgui/ui)
+	ui = SStgui.try_update_ui(user, src, ui)
+	if(!ui)
+		ui = new(user, src, "LibraryVisitorConsole")
+		ui.open()
+
+/obj/machinery/computer/libraryconsole/ui_data(mob/user)
+	var/list/data = list(
+		"search_data" = list(title, author, category),
+		"categories" = list("Any", "Fiction", "Non-Fiction", "Adult", "Reference", "Religion")
+	)
+	return data
+
+/obj/machinery/computer/libraryconsole/ui_act(action, params, datum/tgui/ui)
+	if(..())
+		return
+	switch(action)
+		if("book_search")
+			var/list/results
+			if (!SSdbcore.Connect())
+				//Somehow signal we got an error
+				return TRUE
+		if("query_update")
+			title = sanitize(params["title"])
+			author = sanitize(params["author"])
+			category = params["category"] //*Shouldn't* need sanitizing- but ask #development for opinion firsts
+
+
 /*
  * Borrowbook datum
  */
@@ -207,9 +235,22 @@ GLOBAL_LIST(cachedbooks) // List of our cached book datums
 // TODO: Make this an actual /obj/machinery/computer that can be crafted from circuit boards and such
 // It is August 22nd, 2012... This TODO has already been here for months.. I wonder how long it'll last before someone does something about it.
 // It's December 25th, 2014, and this is STILL here, and it's STILL relevant. Kill me
-/obj/machinery/computer/libraryconsole/bookmanagement
+/obj/machinery/computer/bookmanagement
 	name = "book inventory management console"
 	desc = "Librarian's command station."
+	icon_screen = "library"
+	icon_keyboard = null
+
+	//these muthafuckas arent supposed to smooth
+	base_icon_state = null
+	smoothing_flags = null
+	smoothing_groups = null
+	canSmoothWith = null
+
+	circuit = /obj/item/circuitboard/computer/libraryconsole
+	desc = "Checked out books MUST be returned on time."
+	clockwork = TRUE //it'd look weird
+	broken_overlay_emissive = TRUE
 	verb_say = "beeps"
 	verb_ask = "beeps"
 	verb_exclaim = "beeps"
@@ -226,7 +267,7 @@ GLOBAL_LIST(cachedbooks) // List of our cached book datums
 	var/page = 1	//current page of the external archives
 	var/cooldown = 0
 
-/obj/machinery/computer/libraryconsole/bookmanagement/proc/build_library_menu()
+/obj/machinery/computer/bookmanagement/proc/build_library_menu()
 	if(libcomp_menu)
 		return
 	load_library_db_to_cache()
@@ -242,23 +283,22 @@ GLOBAL_LIST(cachedbooks) // List of our cached book datums
 			libcomp_menu[page] = ""
 		libcomp_menu[page] += "<tr><td>[C.author]</td><td>[C.title]</td><td>[C.category]</td><td><A href='?src=[REF(src)];targetid=[C.id]'>\[Order\]</A></td></tr>\n"
 
-/obj/machinery/computer/libraryconsole/bookmanagement/multitool_act(mob/living/user, obj/item/I)
+/obj/machinery/computer/bookmanagement/multitool_act(mob/living/user, obj/item/I)
 	. = ..()
 
-/obj/machinery/computer/libraryconsole/bookmanagement/ui_interact(mob/user, datum/tgui/ui)
+/obj/machinery/computer/bookmanagement/ui_interact(mob/user, datum/tgui/ui)
 	ui = SStgui.try_update_ui(user, src, ui)
 	if(!ui)
 		ui = new(user, src, "LibraryManagementConsole")
 		ui.open()
 
-/obj/machinery/computer/libraryconsole/bookmanagement/ui_data(mob/user)
-	var/list/data = list(
-		"forbidden_lore" = obj_flags & EMAGGED
-	)
-
+/obj/machinery/computer/bookmanagement/ui_data(mob/user)
+	var/list/data = list()
+	data["bookmanagement"] = TRUE
+	data["forbidden_lore"] = obj_flags & EMAGGED
 	return data
 
-/obj/machinery/computer/libraryconsole/bookmanagement/ui_act(action, params, datum/tgui/ui)
+/obj/machinery/computer/bookmanagement/ui_act(action, params, datum/tgui/ui)
 	if(..())
 		return
 	//Navigation
@@ -286,12 +326,10 @@ GLOBAL_LIST(cachedbooks) // List of our cached book datums
 		if("access_forbidden_lore") //Access the Forbidden Lore Vault
 			if(obj_flags & EMAGGED)
 				print_forbidden_lore(ui.user)
-
-/obj/machinery/computer/libraryconsole/bookmanagement/ui_state()
-
+				ui.close()
 
 /*
-/obj/machinery/computer/libraryconsole/bookmanagement/proc/old_ui_interact(mob/user)
+/obj/machinery/computer/bookmanagement/proc/old_ui_interact(mob/user)
 //	. = ..()
 	var/dat = "" // <META HTTP-EQUIV='Refresh' CONTENT='10'>
 	var/screenstate = 0 // 0 - Main Menu, 1 - Inventory, 2 - Checked Out, 3 - Check Out a Book
@@ -405,10 +443,10 @@ GLOBAL_LIST(cachedbooks) // List of our cached book datums
 	popup.open()
 */
 
-/obj/machinery/computer/libraryconsole/bookmanagement/proc/findscanner(viewrange)
+/obj/machinery/computer/bookmanagement/proc/findscanner(viewrange)
 	return locate(/obj/machinery/libraryscanner) in range(viewrange, get_turf(src))
 
-/obj/machinery/computer/libraryconsole/bookmanagement/proc/print_forbidden_lore(mob/user)
+/obj/machinery/computer/bookmanagement/proc/print_forbidden_lore(mob/user)
 	switch(rand(1,3))
 		if(1)
 			new /obj/item/melee/cultblade/dagger(get_turf(src))
@@ -421,7 +459,7 @@ GLOBAL_LIST(cachedbooks) // List of our cached book datums
 			to_chat(user, "<span class='warning'>Your sanity barely endures the seconds spent in the vault's browsing window. The only thing to remind you of this when you stop browsing is an ominous book, bound by a chain, sitting on the desk. You don't even remember where it came from...</span>")
 	user.visible_message("[user] stares at the blank screen for a few moments, [user.p_their()] expression frozen in fear. When [user.p_they()] finally awaken[user.p_s()] from it, [user.p_they()] look[user.p_s()] a lot older.", 2)
 
-/obj/machinery/computer/libraryconsole/bookmanagement/attackby(obj/item/W, mob/user, params)
+/obj/machinery/computer/bookmanagement/attackby(obj/item/W, mob/user, params)
 	if(istype(W, /obj/item/barcodescanner))
 		var/obj/item/barcodescanner/scanner = W
 		scanner.computer = src
@@ -430,10 +468,10 @@ GLOBAL_LIST(cachedbooks) // List of our cached book datums
 	else
 		return ..()
 
-/obj/machinery/computer/libraryconsole/bookmanagement/should_emag(mob/user)
+/obj/machinery/computer/bookmanagement/should_emag(mob/user)
 	return density && ..()
 /*
-/obj/machinery/computer/libraryconsole/bookmanagement/Topic(href, href_list)
+/obj/machinery/computer/bookmanagement/Topic(href, href_list)
 	if(..())
 		usr << browse(null, "window=library")
 		onclose(usr, "library")

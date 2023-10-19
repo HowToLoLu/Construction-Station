@@ -1,0 +1,1 @@
+/obj/machinery/computer/libraryconsole/bookmanagement : /obj/machinery/computer/bookmanagement{@OLD}
