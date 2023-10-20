@@ -48463,7 +48463,7 @@
 /area/maintenance/department/science)
 "grj" = (
 /obj/structure/table/wood,
-/obj/machinery/computer/libraryconsole/bookmanagement{
+/obj/machinery/computer/bookmanagement{
 	pixel_y = 5
 	},
 /obj/machinery/light{
@@ -53312,7 +53312,7 @@
 /turf/open/floor/plasteel/showroomfloor,
 /area/engine/atmos)
 "ixq" = (
-/obj/machinery/computer/libraryconsole/bookmanagement,
+/obj/machinery/computer/bookmanagement,
 /obj/structure/table,
 /obj/effect/decal/cleanable/dirt,
 /obj/machinery/computer/security/telescreen/entertainment{

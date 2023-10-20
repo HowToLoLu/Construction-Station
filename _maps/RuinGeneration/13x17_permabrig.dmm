@@ -29,7 +29,7 @@
 /turf/open/floor/plasteel,
 /area/ruin/unpowered)
 "dQ" = (
-/obj/machinery/computer/libraryconsole/bookmanagement,
+/obj/machinery/computer/bookmanagement,
 /obj/structure/table,
 /obj/effect/decal/cleanable/dirt,
 /turf/open/floor/plasteel,

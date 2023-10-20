@@ -568,7 +568,7 @@
 /turf/open/floor/mineral/plastitanium,
 /area/shuttle/escape)
 "uQ" = (
-/obj/machinery/computer/libraryconsole/bookmanagement{
+/obj/machinery/computer/bookmanagement{
 	pixel_y = 7
 	},
 /obj/structure/table/wood,

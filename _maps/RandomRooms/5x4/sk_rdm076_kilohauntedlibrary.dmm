@@ -155,7 +155,7 @@
 /area/template_noop)
 "R" = (
 /obj/structure/table/wood,
-/obj/machinery/computer/libraryconsole/bookmanagement{
+/obj/machinery/computer/bookmanagement{
 	pixel_y = 5
 	},
 /obj/effect/decal/cleanable/dirt,

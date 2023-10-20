@@ -102,7 +102,7 @@
 /turf/open/floor/plasteel,
 /area/security/prison)
 "aaM" = (
-/obj/machinery/computer/libraryconsole/bookmanagement,
+/obj/machinery/computer/bookmanagement,
 /obj/structure/table,
 /obj/effect/decal/cleanable/dirt,
 /turf/open/floor/plasteel,
@@ -6076,7 +6076,7 @@
 /area/library)
 "aTd" = (
 /obj/structure/table/wood,
-/obj/machinery/computer/libraryconsole/bookmanagement,
+/obj/machinery/computer/bookmanagement,
 /obj/machinery/light_switch{
 	pixel_y = 28
 	},

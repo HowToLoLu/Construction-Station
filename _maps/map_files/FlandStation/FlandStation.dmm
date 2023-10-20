@@ -51361,7 +51361,7 @@
 /turf/open/floor/plating,
 /area/maintenance/central)
 "nrQ" = (
-/obj/machinery/computer/libraryconsole/bookmanagement{
+/obj/machinery/computer/bookmanagement{
 	pixel_y = 8
 	},
 /obj/structure/table/wood,
@@ -91908,7 +91908,7 @@
 /area/maintenance/port)
 "xaL" = (
 /obj/structure/table,
-/obj/machinery/computer/libraryconsole/bookmanagement,
+/obj/machinery/computer/bookmanagement,
 /obj/effect/turf_decal/tile/red/fourcorners/contrasted,
 /turf/open/floor/plasteel/techmaint,
 /area/security/prison)
