@@ -18,8 +18,6 @@ GLOBAL_LIST_EMPTY(TabletMessengers) // a list of all active messengers, similar 
 	var/enabled = 0
 	// Whether the computer is active/opened/it's screen is on.
 	var/screen_on = 1
-	/// If it's bypassing the set icon state
-	var/bypass_state = FALSE
 	/// Whether or not the computer can be upgraded
 	var/upgradable = TRUE
 	/// Whether or not the computer can be deconstructed
@@ -48,8 +46,6 @@ GLOBAL_LIST_EMPTY(TabletMessengers) // a list of all active messengers, similar 
 	// must have it's own DMI file. Icon states must be called exactly the same in all files, but may look differently
 	// If you create a program which is limited to Laptops and Consoles you don't have to add it's icon_state overlay for Tablets too, for example.
 
-	var/icon_state_unpowered = null							// Icon state when the computer is turned off.
-	var/icon_state_powered = null							// Icon state when the computer is turned on.
 	var/icon_state_menu = "menu"							// Icon state overlay when the computer is turned on, but no program is loaded that would override the screen.
 	var/max_hardware_size = 0								// Maximal hardware w_class. Tablets/PDAs have 1, laptops 2, consoles 4.
 	var/steel_sheet_cost = 5								// Amount of steel sheets refunded when disassembling an empty frame of this computer.
@@ -289,8 +285,6 @@ GLOBAL_LIST_EMPTY(TabletMessengers) // a list of all active messengers, similar 
 
 /obj/item/modular_computer/update_icon()
 	cut_overlays()
-	if(!bypass_state)
-		icon_state = enabled ? icon_state_powered : icon_state_unpowered
 
 	var/init_icon = initial(icon)
 	if(!init_icon)
