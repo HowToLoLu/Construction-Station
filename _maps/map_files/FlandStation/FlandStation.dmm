@@ -79621,13 +79621,6 @@
 /obj/item/storage/book/bible,
 /turf/open/floor/carpet,
 /area/chapel/main)
-"uuA" = (
-/obj/effect/turf_decal/trimline/purple/filled/line{
-	dir = 9
-	},
-/obj/machinery/lapvend,
-/turf/open/floor/iron/white,
-/area/science/lobby)
 "uuM" = (
 /obj/structure/table,
 /obj/machinery/cell_charger,
@@ -132301,7 +132294,7 @@ usO
 okI
 eJJ
 wvE
-uuA
+vJN
 wQP
 chI
 hZQ

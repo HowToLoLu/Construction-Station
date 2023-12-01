@@ -42295,11 +42295,11 @@
 /turf/open/floor/engine,
 /area/maintenance/disposal/incinerator)
 "kSn" = (
-/obj/machinery/lapvend,
 /obj/effect/turf_decal/tile/purple/half/contrasted{
 	dir = 4
 	},
 /obj/effect/turf_decal/siding/purple,
+/obj/structure/chair,
 /turf/open/floor/iron/white,
 /area/science/research)
 "kTa" = (
