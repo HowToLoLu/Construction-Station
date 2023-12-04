@@ -15,12 +15,23 @@
 			is_orbiting = AM.orbiting ? TRUE : FALSE
 	. = ..()
 
-/obj/item/camera/proc/camera_get_icon(list/turfs, turf/center, psize_x = 96, psize_y = 96, datum/turf_reservation/clone_area, size_x, size_y, total_x, total_y)
+/**
+ * Generates an icon from an area of turfs
+ * * `turfs` - A list of adjacent turfs to take a photo of
+ * * `center` - The turf at the center of the turfs listed; not used if `clone_area` is supplied
+ * * `psize_x` - The pixel width of the final icon result. Defaults to 96
+ * * `psize_y` - The pixel height of the final icon result. Defaults to 96
+ * * `clone_area` - A `/datum/turf_reservation` for that preserves turf state at the moment of calling this proc
+ * * `total_x` - Width of turfs to put into the cloned area
+ * * `total_y` - Height of turfs to put into the cloned area
+ * * `special_sight_check` - A callback invoked to check if an atom can be seen while invisible
+ */
+/proc/camera_get_icon(list/turfs, turf/center, psize_x = 96, psize_y = 96, datum/turf_reservation/clone_area, total_x, total_y, datum/callback/special_sight_check)
 	var/list/images = list()
 	var/skip_normal = FALSE
 	var/wipe_images = FALSE
 
-	if(istype(clone_area) && total_x == clone_area.width && total_y == clone_area.height && size_x >= 0 && size_y > 0)
+	if(istype(clone_area) && total_x == clone_area.width && total_y == clone_area.height)
 		var/cloned_center_x = round(clone_area.bottom_left_coords[1] + ((total_x - 1) / 2))
 		var/cloned_center_y = round(clone_area.bottom_left_coords[2] + ((total_y - 1) / 2))
 		for(var/t in turfs)
@@ -35,7 +46,7 @@
 				images += new /image/photo(newT, T.loc)
 			for(var/i in T.contents)
 				var/atom/A = i
-				if(!A.invisibility || (see_ghosts && can_camera_see_atom(A)))
+				if(!A.invisibility || special_sight_check?.Invoke(A))
 					images += new /image/photo(newT, A)
 		skip_normal = TRUE
 		wipe_images = TRUE
@@ -47,7 +58,7 @@
 			images += new /image/photo(T.loc, T)
 			for(var/atom/movable/A in T)
 				if(A.invisibility)
-					if(!(see_ghosts && can_camera_see_atom(A)))
+					if(!(special_sight_check?.Invoke(A)))
 						continue
 				images += new /image/photo(A.loc, A)
 			CHECK_TICK
@@ -111,12 +122,6 @@
 
 				res.Blend(img, blendMode2iconMode(clone.blend_mode), xo, yo)
 			CHECK_TICK
-
-	if(!silent)
-		if(istype(custom_sound))				//This is where the camera actually finishes its exposure.
-			playsound(loc, custom_sound, 75, 1, -3)
-		else
-			playsound(loc, pick('sound/items/polaroid1.ogg', 'sound/items/polaroid2.ogg'), 75, 1, -3)
 
 	if(wipe_images)
 		QDEL_LIST(images)

@@ -212,19 +212,25 @@
 
 	var/psize_x = (size_x * 2 + 1) * world.icon_size
 	var/psize_y = (size_y * 2 + 1) * world.icon_size
-	var/get_icon = camera_get_icon(turfs, target_turf, psize_x, psize_y, clone_area, size_x, size_y, (size_x * 2 + 1), (size_y * 2 + 1))
+	var/get_icon = camera_get_icon(turfs, target_turf, psize_x, psize_y, clone_area, (size_x * 2 + 1), (size_y * 2 + 1), CALLBACK(src, PROC_REF(can_camera_see_atom)))
 	qdel(clone_area)
 	var/icon/temp = icon('icons/effects/96x96.dmi',"")
 	temp.Blend("#000", ICON_OVERLAY)
 	temp.Scale(psize_x, psize_y)
 	temp.Blend(get_icon, ICON_OVERLAY)
 
+	if(!silent)
+		if(istype(custom_sound))
+			playsound(loc, custom_sound, 75, 1, -3)
+		else
+			playsound(loc, pick('sound/items/polaroid1.ogg', 'sound/items/polaroid2.ogg'), 75, 1, -3)
+
 	var/datum/picture/P = new("picture", desc.Join(" "), mobs_spotted, minds_spotted, temp, null, psize_x, psize_y, blueprints)
 	after_picture(user, P, flag)
 	blending = FALSE
 
 /obj/item/camera/proc/can_camera_see_atom(atom/A)
-	return is_type_in_typecache(A, detectable_invisible_atom)
+	return see_ghosts && is_type_in_typecache(A, detectable_invisible_atom)
 
 /obj/item/camera/proc/flash_end()
 	set_light_on(FALSE)
