@@ -6,16 +6,15 @@
 	icon_state = "rainbowcan"
 	var/uses_left = 1
 
-    var/list/allowed_targets = list()
-    var/list/forbidden_targets = list()
-    var/apply_icon = null
-    var/apply_icon_state = null
-    var/apply_item_state = null
-    var/apply_righthand_file = null
-    var/apply_lefthand_file = null
-    /// Deletes the colorizer when it runs out of charges
-    var/delete_me = TRUE
-)
+	var/list/allowed_targets = list()
+	var/list/forbidden_targets = list()
+	var/apply_icon = null
+	var/apply_icon_state = null
+	var/apply_item_state = null
+	var/apply_righthand_file = null
+	var/apply_lefthand_file = null
+	/// Deletes the colorizer when it runs out of charges
+	var/delete_me = TRUE
 
 /obj/item/colorizer/examine(mob/user)
 	. = ..()
