@@ -1,9 +1,15 @@
 /datum/component/butchering
-	var/speed = 80 //time in deciseconds taken to butcher something
-	var/effectiveness = 100 //percentage effectiveness; numbers above 100 yield extra drops
-	var/bonus_modifier = 0 //percentage increase to bonus item chance
-	var/butcher_sound = 'sound/weapons/slice.ogg' //sound played when butchering
+	/// Time in deciseconds taken to butcher something
+	var/speed = 8 SECONDS
+	/// Percentage effectiveness; numbers above 100 yield extra drops
+	var/effectiveness = 100
+	/// Percentage increase to bonus item chance
+	var/bonus_modifier = 0
+	/// Sound played when butchering
+	var/butcher_sound = 'sound/weapons/slice.ogg'
+	/// Whether or not this component can be used to butcher currently. Used to temporarily disable butchering
 	var/butchering_enabled = TRUE
+	/// Whether or not this component is compatible with blunt tools.
 	var/can_be_blunt = FALSE
 
 /datum/component/butchering/Initialize(_speed, _effectiveness, _bonus_modifier, _butcher_sound, disabled, _can_be_blunt)
@@ -35,7 +41,7 @@
 			user.show_message("<span class='danger'>[H]'s neck has already been already cut, you can't make the bleeding any worse!", 1, \
 							"<span class='danger'>Their neck has already been already cut, you can't make the bleeding any worse!")
 			return COMPONENT_ITEM_NO_ATTACK
-		if((H.health <= H.crit_threshold || (user.pulling == H && user.grab_state >= GRAB_NECK) || H.IsSleeping()) && user.zone_selected == BODY_ZONE_HEAD) // Only sleeping, neck grabbed, or crit, can be sliced.
+		if((H.health <= H.crit_threshold || (user.pulling == H && user.grab_state >= GRAB_NECK) || H.IsSleeping())) // Only sleeping, neck grabbed, or crit, can be sliced.
 			INVOKE_ASYNC(src, PROC_REF(startNeckSlice), source, H, user)
 			return COMPONENT_ITEM_NO_ATTACK
 

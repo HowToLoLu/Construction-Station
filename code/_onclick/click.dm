@@ -89,7 +89,10 @@
 		ShiftClickOn(A)
 		return
 	if(LAZYACCESS(modifiers, MIDDLE_CLICK))
-		MiddleClickOn(A)
+		if(LAZYACCESS(modifiers, CTRL_CLICK))
+			CtrlMiddleClickOn(A)
+			return
+		MiddleClickOn(A, params)
 		return
 	if(LAZYACCESS(modifiers, ALT_CLICK)) // alt and alt-gr (rightalt)
 		AltClickOn(A)
@@ -192,7 +195,7 @@
 		for(var/atom/target in checking)  // will filter out nulls
 			if(closed[target] || isarea(target))  // avoid infinity situations
 				continue
-			if(isturf(target) || isturf(target.loc) || (target in direct_access)) //Directly accessible atoms
+			if(isturf(target) || isturf(target.loc) || (target in direct_access) || (isobj(target) && target.flags_1 & IS_ONTOP_1)) //Directly accessible atoms
 				if(Adjacent(target) || (tool && CheckToolReach(src, target, tool.reach))) //Adjacent or reaching attacks
 					return TRUE
 
@@ -331,6 +334,15 @@
 		H.changeNext_move(CLICK_CD_MELEE)
 	else
 		..()
+
+/mob/proc/CtrlMiddleClickOn(atom/A)
+	// specifically made for admin feature.
+	if(check_rights_for(client, R_ADMIN))
+		client.toggle_tag_datum(A)
+		return
+	A.CtrlClick(src) // this assumes you did CtrlClick instead of MiddleClick
+	return
+
 /*
 	Alt click
 	Unused except for AI
@@ -360,7 +372,7 @@
 
 /*
 	Control+Shift click
-	Unused except for AI
+	Used for AI and Give code
 */
 /mob/proc/CtrlShiftClickOn(atom/A)
 	A.CtrlShiftClick(src)
@@ -392,7 +404,7 @@
 	playsound(usr.loc, 'sound/weapons/taser2.ogg', 75, 1)
 
 	LE.firer = src
-	LE.def_zone = ran_zone(zone_selected)
+	LE.def_zone = ran_zone(get_combat_bodyzone(A))
 	LE.preparePixelProjectile(A, src, params)
 	LE.fire()
 
@@ -473,6 +485,15 @@
 
 /mob/proc/MouseWheelOn(atom/A, delta_x, delta_y, params)
 	SEND_SIGNAL(src, COMSIG_MOB_MOUSE_SCROLL_ON, A, delta_x, delta_y, params)
+	if (!client)
+		return
+	// Send the hotkey action
+	if (delta_y > 0)
+		client.keyDown("ScrollUp")
+		client.keyUp("ScrollUp")
+	else if (delta_y < 0)
+		client.keyDown("ScrollDown")
+		client.keyUp("ScrollDown")
 
 /mob/dead/observer/proc/mouse_wheeled(atom/A, delta_x, delta_y, params)
 	SIGNAL_HANDLER

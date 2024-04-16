@@ -10,7 +10,7 @@
 	item_state = "gun"
 	flags_1 =  CONDUCT_1
 	slot_flags = ITEM_SLOT_BELT
-	materials = list(/datum/material/iron=2000)
+	custom_materials = list(/datum/material/iron=2000)
 	w_class = WEIGHT_CLASS_LARGE
 	throwforce = 5
 	throw_speed = 3
@@ -152,7 +152,7 @@
 		pin = null
 	if(A == chambered)
 		chambered = null
-		update_icon()
+		update_appearance(UPDATE_ICON)
 	if(A == bayonet)
 		clear_bayonet()
 	if(A == gun_light)
@@ -195,7 +195,7 @@
 		ranged_cooldown = max(world.time + equip_time, ranged_cooldown)
 		user.client?.give_cooldown_cursor(ranged_cooldown - world.time)
 		equip_timer_id = addtimer(CALLBACK(src, PROC_REF(clear_gun_equip_slowdown), user), equip_time, TIMER_STOPPABLE)
-		user.add_movespeed_modifier(MOVESPEED_ID_GUN_EQUIP, multiplicative_slowdown = equip_slowdown, movetypes = GROUND)
+		user.add_or_update_variable_movespeed_modifier(/datum/movespeed_modifier/drawing_firearm, multiplicative_slowdown = equip_slowdown)
 	else
 		clear_gun_equip_slowdown(user)
 		if (equip_timer_id)
@@ -222,7 +222,7 @@
 
 /obj/item/gun/proc/clear_gun_equip_slowdown(mob/living/user)
 	slowdown = initial(slowdown)
-	user.remove_movespeed_modifier(MOVESPEED_ID_GUN_EQUIP)
+	user.remove_movespeed_modifier(/datum/movespeed_modifier/drawing_firearm)
 	equip_timer_id = null
 
 //called after the gun has successfully fired its chambered ammo.
@@ -303,7 +303,7 @@
 			return
 		if(!ismob(target) || user.a_intent == INTENT_HARM) //melee attack
 			return
-		if(target == user && user.zone_selected != BODY_ZONE_PRECISE_MOUTH) //so we can't shoot ourselves (unless mouth selected)
+		if(target == user && user.is_zone_selected(BODY_ZONE_PRECISE_MOUTH)) //so we can't shoot ourselves (unless mouth selected)
 			return
 
 	if(istype(user))//Check if the user can use the gun, if the user isn't alive(turrets) assume it can.
@@ -312,7 +312,15 @@
 			return
 
 	if(flag)
-		if(user.zone_selected == BODY_ZONE_PRECISE_MOUTH)
+		var/simplified_mode = user.client?.prefs.read_player_preference(/datum/preference/choiced/zone_select) == PREFERENCE_BODYZONE_SIMPLIFIED
+		var/mob/living/living_target = target
+		if (!simplified_mode)
+			if(user.is_zone_selected(BODY_ZONE_PRECISE_MOUTH))
+				handle_suicide(user, target, params)
+				return
+		// On simplified mode, contextually determine if we want to suicide them
+		// If the target is ourselves, they are buckled, restrained or lying down then suicide them
+		else if(user.is_zone_selected(BODY_ZONE_HEAD) && istype(living_target) && (user == target || living_target.restrained() || living_target.buckled || living_target.IsUnconscious()))
 			handle_suicide(user, target, params)
 			return
 
@@ -421,7 +429,7 @@
 		firing_burst = FALSE
 		return FALSE
 	process_chamber()
-	update_icon()
+	update_appearance(UPDATE_ICON)
 	return TRUE
 
 /obj/item/gun/proc/process_fire(atom/target, mob/living/user, message = TRUE, params = null, zone_override = "", bonus_spread = 0, aimed = FALSE)
@@ -477,7 +485,7 @@
 			shoot_with_empty_chamber(user)
 			return
 		process_chamber()
-		update_icon()
+		update_appearance(UPDATE_ICON)
 		semicd = TRUE
 		addtimer(CALLBACK(src, PROC_REF(reset_semicd)), fire_delay)
 
@@ -698,8 +706,20 @@
 	update_gunlight()
 
 /obj/item/gun/proc/update_gunlight()
-	update_icon()
+	update_appearance(UPDATE_ICON)
 	update_action_buttons()
+
+/obj/item/gun/pickup(mob/user)
+	..()
+	if(azoom)
+		azoom.Grant(user)
+
+/obj/item/gun/dropped(mob/user)
+	..()
+	if(azoom)
+		azoom.Remove(user)
+	if(zoomed)
+		zoom(user, user.dir)
 
 /obj/item/gun/proc/handle_suicide(mob/living/carbon/human/user, mob/living/carbon/human/target, params, bypass_timer)
 	if(!ishuman(user) || !ishuman(target))
@@ -720,7 +740,7 @@
 
 	semicd = TRUE
 
-	if(!bypass_timer && (!do_after(user, 12 SECONDS, target) || user.zone_selected != BODY_ZONE_PRECISE_MOUTH))
+	if(!bypass_timer && (!do_after(user, 12 SECONDS, target) || !user.is_zone_selected(BODY_ZONE_PRECISE_MOUTH)))
 		if(user)
 			if(user == target)
 				user.visible_message("<span class='notice'>[user] decided not to shoot.</span>")

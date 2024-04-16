@@ -15,7 +15,8 @@
 					/obj/item/flashlight/seclite = 4,
 					/obj/item/holosign_creator/security = 3,
 					/obj/item/restraints/legcuffs/bola/energy = 7,
-					/obj/item/club = 5)
+					/obj/item/club = 5,
+					/obj/item/melee/classic_baton/police/tonfa = 5)
 	contraband = list(/obj/item/clothing/glasses/sunglasses/advanced = 2)
 	premium = list(/obj/item/storage/belt/security/webbing = 5,
 					/obj/item/storage/backpack/duffelbag/sec/deputy = 4,
@@ -39,4 +40,5 @@
 		F.update_brightness()
 
 /obj/item/vending_refill/security
+	machine_name = "SecTech"
 	icon_state = "refill_sec"

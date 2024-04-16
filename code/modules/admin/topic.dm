@@ -557,10 +557,10 @@
 				M.change_mob_type( /mob/living/simple_animal/parrot , null, null, delmob )
 			if("polyparrot")
 				M.change_mob_type( /mob/living/simple_animal/parrot/Poly , null, null, delmob )
-			if("constructarmored")
-				M.change_mob_type( /mob/living/simple_animal/hostile/construct/armored , null, null, delmob )
-			if("constructbuilder")
-				M.change_mob_type( /mob/living/simple_animal/hostile/construct/builder , null, null, delmob )
+			if("constructjuggernaut")
+				M.change_mob_type( /mob/living/simple_animal/hostile/construct/juggernaut , null, null, delmob )
+			if("constructartificer")
+				M.change_mob_type( /mob/living/simple_animal/hostile/construct/artificer , null, null, delmob )
 			if("constructwraith")
 				M.change_mob_type( /mob/living/simple_animal/hostile/construct/wraith , null, null, delmob )
 			if("shade")
@@ -727,7 +727,7 @@
 	else if(href_list["messageedits"])
 		if(!check_rights(R_ADMIN))
 			return
-		var/datum/DBQuery/query_get_message_edits = SSdbcore.NewQuery(
+		var/datum/db_query/query_get_message_edits = SSdbcore.NewQuery(
 			"SELECT edits FROM [format_table_name("messages")] WHERE id = :message_id",
 			list("message_id" = href_list["messageedits"])
 		)
@@ -1696,7 +1696,7 @@
 	else if(href_list["ctf_toggle"])
 		if(!check_rights(R_ADMIN))
 			return
-		toggle_all_ctf(usr)
+		toggle_id_ctf(usr, "centcom")
 
 	else if(href_list["rebootworld"])
 		if(!check_rights(R_ADMIN))
@@ -1798,7 +1798,7 @@
 		var/reason = rustg_url_decode(href_list["editbanreason"])
 		var/page = href_list["editbanpage"]
 		var/admin_key = href_list["editbanadminkey"]
-		ban_panel(player_key, player_ip, player_cid, role, duration, applies_to_admins, reason, edit_id, page, admin_key)
+		old_ban_panel(player_key, player_ip, player_cid, role, duration, applies_to_admins, reason, edit_id, page, admin_key)
 
 	else if(href_list["unbanid"])
 		var/ban_id = href_list["unbanid"]
@@ -1907,6 +1907,35 @@
 			return
 		GLOB.interviews.ui_interact(usr)
 
+	else if(href_list["tag_datum"])
+		if(!check_rights(R_ADMIN))
+			return
+		var/datum/datum_to_tag = locate(href_list["tag_datum"])
+		if(!datum_to_tag)
+			return
+		return add_tagged_datum(datum_to_tag)
+
+	else if(href_list["del_tag"])
+		if(!check_rights(R_ADMIN))
+			return
+		var/datum/datum_to_remove = locate(href_list["del_tag"])
+		if(!datum_to_remove)
+			return
+		return remove_tagged_datum(datum_to_remove)
+
+	else if(href_list["show_tags"])
+		if(!check_rights(R_ADMIN))
+			return
+		return display_tags()
+
+	else if(href_list["mark_datum"])
+		if(!check_rights(R_ADMIN))
+			return
+		var/datum/datum_to_mark = locate(href_list["mark_datum"])
+		if(!datum_to_mark)
+			return
+		return usr.client?.mark_datum(datum_to_mark)
+
 	else if(href_list["backstory_select"])
 		if(!check_rights(R_ADMIN))
 			return
@@ -1925,6 +1954,29 @@
 		if(!istype(paper_to_show))
 			return
 		paper_to_show.ui_interact(usr)
+
+	else if(href_list["force_cryo"])
+		if(!check_rights(R_ADMIN))
+			return
+		var/param = href_list["force_cryo"]
+		// If it's a direct reference to a mob, use that.
+		var/mob/living/target = locate(param)
+		if(!istype(target))
+			// Might be a ckey? Let's see.
+			target = get_ckey_last_living(target)
+			if(!istype(target))
+				to_chat(usr, "<span class='warning'>This can only be used on instances of type /mob/living.</span>")
+				return
+		var/method = tgui_alert(usr, "Select force-cryo method", "Cryo Express", list("Centcom Pod (recommended)", "Instant", "Cancel"))
+		switch(method)
+			if("Centcom Pod (recommended)")
+				INVOKE_ASYNC(GLOBAL_PROC, GLOBAL_PROC_REF(force_cryo), target)
+			if("Instant")
+				INVOKE_ASYNC(GLOBAL_PROC, GLOBAL_PROC_REF(instant_force_cryo), target)
+			else
+				return
+		message_admins("[key_name_admin(usr)] force-cryoed [ADMIN_LOOKUPFLW(target)]].")
+		log_admin("[key_name(usr)] force-cryoed [key_name(target)]].")
 
 /datum/admins/proc/HandleCMode()
 	if(!check_rights(R_ADMIN))

@@ -141,7 +141,9 @@
 	if(!target || !isturf(loc))
 		return FALSE
 	if(istype(target, /atom/movable/screen))
-		return FALSE
+		var/atom/movable/screen/S = target
+		if(!S.can_throw_target)
+			return FALSE
 
 	var/atom/movable/thrown_thing
 	var/obj/item/I = get_active_held_item()
@@ -481,9 +483,9 @@
 /mob/living/carbon/update_mobility()
 	. = ..()
 	if(!(mobility_flags & MOBILITY_STAND))
-		add_movespeed_modifier(MOVESPEED_ID_CARBON_CRAWLING, TRUE, multiplicative_slowdown = CRAWLING_ADD_SLOWDOWN)
+		add_movespeed_modifier(/datum/movespeed_modifier/carbon_crawling)
 	else
-		remove_movespeed_modifier(MOVESPEED_ID_CARBON_CRAWLING, TRUE)
+		remove_movespeed_modifier(/datum/movespeed_modifier/carbon_crawling)
 
 //Updates the mob's health from bodyparts and mob damage variables
 /mob/living/carbon/updatehealth()
@@ -504,9 +506,9 @@
 		become_husk("burn")
 	med_hud_set_health()
 	if(stat == SOFT_CRIT)
-		add_movespeed_modifier(MOVESPEED_ID_CARBON_SOFTCRIT, TRUE, multiplicative_slowdown = SOFTCRIT_ADD_SLOWDOWN)
+		add_movespeed_modifier(/datum/movespeed_modifier/carbon_softcrit)
 	else
-		remove_movespeed_modifier(MOVESPEED_ID_CARBON_SOFTCRIT, TRUE)
+		remove_movespeed_modifier(/datum/movespeed_modifier/carbon_softcrit)
 	SEND_SIGNAL(src, COMSIG_LIVING_UPDATE_HEALTH)
 
 
@@ -597,9 +599,19 @@
 	var/obj/item/organ/eyes/E = getorganslot(ORGAN_SLOT_EYES)
 	if(E)
 		. += E.tint
-
 	else
 		. += INFINITY
+
+/mob/living/carbon/get_permeability_protection(list/target_zones = list(HANDS = 0, CHEST = 0, GROIN = 0, LEGS = 0, FEET = 0, ARMS = 0, HEAD = 0))
+	for(var/obj/item/I in get_equipped_items())
+		for(var/zone in target_zones)
+			if(I.body_parts_covered & zone)
+				target_zones[zone] = max(1 - I.permeability_coefficient, target_zones[zone])
+	var/protection = 0
+	for(var/zone in target_zones)
+		protection += target_zones[zone]
+	protection *= INVERSE(target_zones.len)
+	return protection
 
 //this handles hud updates
 /mob/living/carbon/update_damage_hud()
@@ -753,6 +765,9 @@
 				set_stat(SOFT_CRIT)
 			else
 				set_stat(CONSCIOUS)
+			if(!is_blind())
+				var/datum/component/blind_sense/B = GetComponent(/datum/component/blind_sense)
+				B?.RemoveComponent()
 		update_mobility()
 	update_damage_hud()
 	update_health_hud()
@@ -786,6 +801,9 @@
 	if(!getorganslot(ORGAN_SLOT_LIVER))
 		return FALSE
 
+	// We don't want walking husks god no
+	if(HAS_TRAIT(src, TRAIT_HUSK))
+		src.cure_husk()
 	return ..()
 
 /mob/living/carbon/fully_heal(admin_revive = FALSE)
@@ -843,8 +861,9 @@
 	..()
 
 /mob/living/carbon/fakefire(var/fire_icon = "Generic_mob_burning")
-	var/mutable_appearance/new_fire_overlay = mutable_appearance('icons/mob/OnFire.dmi', fire_icon, -FIRE_LAYER)
+	var/mutable_appearance/new_fire_overlay = mutable_appearance('icons/mob/OnFire.dmi', fire_icon, CALCULATE_MOB_OVERLAY_LAYER(FIRE_LAYER))
 	new_fire_overlay.appearance_flags = RESET_COLOR
+	new_fire_overlay.overlays.Add(emissive_appearance('icons/mob/OnFire.dmi', fire_icon, CALCULATE_MOB_OVERLAY_LAYER(FIRE_LAYER)))
 	overlays_standing[FIRE_LAYER] = new_fire_overlay
 	apply_overlay(FIRE_LAYER)
 
@@ -1061,6 +1080,50 @@
 	if(mood)
 		if(mood.sanity < SANITY_UNSTABLE)
 			return TRUE
+
+/mob/living/carbon/wash(clean_types)
+	. = ..()
+
+	// Wash equipped stuff that cannot be covered
+	for(var/obj/item/held_thing in held_items)
+		if(held_thing.wash(clean_types))
+			. = TRUE
+
+	if(back?.wash(clean_types))
+		update_inv_back(0)
+		. = TRUE
+
+	if(head?.wash(clean_types))
+		update_inv_head()
+		. = TRUE
+
+	// Check and wash stuff that can be covered
+	var/list/obscured = check_obscured_slots()
+
+	// If the eyes are covered by anything but glasses, that thing will be covering any potential glasses as well.
+	if(glasses && is_eyes_covered(FALSE, TRUE, TRUE) && glasses.wash(clean_types))
+		update_inv_glasses()
+		. = TRUE
+
+	if(wear_mask && !(ITEM_SLOT_MASK in obscured) && wear_mask.wash(clean_types))
+		update_inv_wear_mask()
+		. = TRUE
+
+	if(ears && !(ITEM_SLOT_EARS in obscured) && ears.wash(clean_types))
+		update_inv_ears()
+		. = TRUE
+
+	if(wear_neck && !(ITEM_SLOT_NECK in obscured) && wear_neck.wash(clean_types))
+		update_inv_neck()
+		. = TRUE
+
+	if(shoes && !(ITEM_SLOT_FEET in obscured) && shoes.wash(clean_types))
+		update_inv_shoes()
+		. = TRUE
+
+	if(gloves && !(ITEM_SLOT_GLOVES in obscured) && gloves.wash(clean_types))
+		update_inv_gloves()
+		. = TRUE
 
 /mob/living/carbon/set_gender(ngender = NEUTER, silent = FALSE, update_icon = TRUE, forced = FALSE)
 	var/opposite_gender = gender != ngender
