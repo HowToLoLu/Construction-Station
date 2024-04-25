@@ -1,3 +1,5 @@
+#define PDA_CHARGE_RATE_MULTIPLIER 0.2
+
 /obj/machinery/cell_charger
 	name = "cell charger"
 	desc = "It charges power cells."
@@ -14,16 +16,14 @@
 	var/chargelevel = -1
 	var/charge_rate = 250
 
-/obj/machinery/cell_charger/update_icon()
-	cut_overlays()
+/obj/machinery/cell_charger/update_overlays()
+	. = ..()
 	if(charging)
-		add_overlay("ccharger-on")
+		. += pda ? "pda" : "ccharger-on"
 		if(!(machine_stat & (BROKEN|NOPOWER)))
 			var/newlevel = 	round(charging.percent() * 4 / 100)
 			chargelevel = newlevel
-			add_overlay("ccharger-o[newlevel]")
-	if(pda)
-		add_overlay("pda")
+			. += "ccharger-o[newlevel]"
 
 /obj/machinery/cell_charger/examine(mob/user)
 	. = ..()
@@ -34,112 +34,112 @@
 		. += "<span class='notice'>The status display reads: Charging power: <b>[charge_rate]W</b>.</span>"
 
 /obj/machinery/cell_charger/attackby(obj/item/W, mob/user, params)
-	if(istype(W, /obj/item/modular_computer/tablet/pda) && !panel_open)
+	if(W.tool_behaviour)
+		if(!charging && ( \
+			default_deconstruction_screwdriver(user, icon_state, icon_state, W) || \
+			default_unfasten_wrench(user, W))
+		)
+			return
+		else if(default_deconstruction_crowbar(W))
+			return
+
+	var/obj/item/stock_parts/W_cell = W
+	var/obj/item/modular_computer/tablet/pda/W_pda = W
+	if(!panel_open && (istype(W_cell) || istype(W_pda)))
 		if(machine_stat & BROKEN)
 			to_chat(user, "<span class='warning'>[src] is broken!</span>")
 			return
 		if(!anchored)
 			to_chat(user, "<span class='warning'>[src] isn't attached to the ground!</span>")
 			return
-		if(charging)
+		if(charging || pda) //just in case somehow there's a PDA here without a cell
 			to_chat(user, "<span class='warning'>The charger is already in use!</span>")
 			return
-		pda = W
-		if(pda.get_cell() == null)
-			to_chat(user, "<span class='warning'>There is no cell in that PDA!</span>")
-			pda = null
+
+		var/area/a = get_area(src) // Gets our locations location, like a dream within a dream
+		if(!isarea(a))
 			return
-		else
-			var/area/a = loc.loc // Gets our locations location, like a dream within a dream
-			if(!isarea(a))
-				return
-			if(a.power_equip == 0) // There's no APC in this area, don't try to cheat power!
-				to_chat(user, "<span class='warning'>[src] blinks red as you try to insert the PDA!</span>")
+		if(a.power_equip == 0) // There's no APC in this area, don't try to cheat power!
+			to_chat(user, "<span class='warning'>[src] blinks red as you try to insert [W]!</span>")
+			return
+
+		if(istype(W_pda))
+			var/pda_cell = W_pda.get_cell()
+			if(!pda_cell)
+				to_chat(user, "<span class='warning'>There is no power cell in [W]!</span>")
 				return
 			if(!user.transferItemToLoc(W,src))
 				return
 
 			pda = W
-			charging = pda.get_cell()
-			user.visible_message("[user] inserts a PDA into [src].", "<span class='notice'>You insert the PDA into [src].</span>")
+			charging = pda_cell
+			RegisterSignal(charging, COMSIG_PARENT_QDELETING, PROC_REF(pda_cell_destroyed))
+			user.visible_message("<span class='notice'>[user] inserts a PDA into [src].</span>", \
+				"<span class='notice'>You insert [W] into [src].</span>")
 			chargelevel = -1
 			update_icon()
-	else if(istype(W, /obj/item/stock_parts/cell) && !panel_open)
-		if(machine_stat & BROKEN)
-			to_chat(user, "<span class='warning'>[src] is broken!</span>")
 			return
-		if(!anchored)
-			to_chat(user, "<span class='warning'>[src] isn't attached to the ground!</span>")
-			return
-		if(charging)
-			to_chat(user, "<span class='warning'>There is already a cell in the charger!</span>")
-			return
-		else
-			var/area/a = loc.loc // Gets our locations location, like a dream within a dream
-			if(!isarea(a))
-				return
-			if(a.power_equip == 0) // There's no APC in this area, don't try to cheat power!
-				to_chat(user, "<span class='warning'>[src] blinks red as you try to insert the cell!</span>")
-				return
+		else //presumed istype(W_cell) to be true at this point
 			if(!user.transferItemToLoc(W,src))
 				return
 
 			charging = W
-			user.visible_message("[user] inserts a cell into [src].", "<span class='notice'>You insert a cell into [src].</span>")
+			user.visible_message("<span class='notice'>[user] inserts a cell into [src].<span class='notice'>", \
+				"<span class='notice'>You insert [W] into [src].</span>")
 			chargelevel = -1
 			update_icon()
+			return
 	else
-		if(!charging && default_deconstruction_screwdriver(user, icon_state, icon_state, W))
-			return
-		if(default_deconstruction_crowbar(W))
-			return
-		if(!charging && default_unfasten_wrench(user, W))
-			return
 		return ..()
 
+/// COMSIG_PARENT_QDELETING Exited doesn't recieve nested exits, so we have to handle sudden PDA cell deletion here.
+/obj/machinery/cell_charger/proc/pda_cell_destroyed(datum/source)
+	SIGNAL_HANDLER
+
+	charging = null
+	if(pda)
+		visible_message("<span class='warning'>[pda] pops out of [src]!</span>")
+		pda.forceMove(drop_location())
+
+
+/obj/machinery/cell_charger/Exited(atom/movable/leaving, direction) //Handles the PDA or cell leaving our immediate contents
+	. = ..()
+	if(leaving == pda || leaving == charging)
+		if(pda && charging)
+			UnregisterSignal(charging, COMSIG_PARENT_QDELETING)
+		pda = null
+		charging?.update_icon()
+		charging = null
+		chargelevel = -1
+		update_icon()
+
 /obj/machinery/cell_charger/deconstruct()
-	if(charging)
+	if(pda)
+		pda.forceMove(drop_location())
+	else if(charging)
 		charging.forceMove(drop_location())
 	return ..()
 
-/obj/machinery/cell_charger/Destroy()
-	QDEL_NULL(charging)
-	return ..()
-
-/obj/machinery/cell_charger/proc/removecell()
-	charging.update_icon()
-	charging = null
-	chargelevel = -1
-	update_icon()
-
 /obj/machinery/cell_charger/attack_hand(mob/user)
 	. = ..()
-	if(.)
+
+	var/obj/to_pop_out = pda || charging
+	if(. || !to_pop_out)
 		return
-	if(!charging)
-		return
 
-	user.put_in_hands(pda ? pda : charging)
-	charging.add_fingerprint(user)
-
-	user.visible_message("[user] removes [pda ? pda : charging] from [src].", "<span class='notice'>You remove [pda ? pda : charging] from [src].</span>")
-	pda = null
-
-	removecell()
+	user.visible_message("<span class='notice'>[user] removes a [pda ? "PDA" : "cell"] from [src].<span class='notice'>", \
+		"<span class='notice'>You remove [to_pop_out] from [src].</span>")
+	to_pop_out.add_fingerprint(user)
+	user.put_in_hands(to_pop_out)
 
 /obj/machinery/cell_charger/attack_tk(mob/user)
-	if(!charging)
+	var/obj/to_pop_out = pda || charging
+	if(!to_pop_out)
 		return
 
-	if(pda)
-		pda.forceMove(loc)
-		to_chat(user, "<span class='notice'>You telekinetically remove [pda] from [src].</span>")
-	else
-		charging.forceMove(loc)
-		to_chat(user, "<span class='notice'>You telekinetically remove [charging] from [src].</span>")
-	pda = null
-
-	removecell()
+	visible_message("<span class='warning'>[to_pop_out] pops out of [src]!</span>", ignored_mobs = user)
+	to_chat(user, "<span class='notice'>You telekinetically remove [to_pop_out] from [src].</span>")
+	to_pop_out.forceMove(loc)
 
 /obj/machinery/cell_charger/attack_ai(mob/user)
 	return
@@ -150,7 +150,9 @@
 	if(machine_stat & (BROKEN|NOPOWER) || . & EMP_PROTECT_CONTENTS)
 		return
 
-	if(charging)
+	if(pda)
+		pda.emp_act(severity)
+	else if(charging)
 		charging.emp_act(severity)
 
 /obj/machinery/cell_charger/RefreshParts()
@@ -164,7 +166,7 @@
 
 	if(charging.percent() >= 100)
 		return
-	use_power(charge_rate * delta_time * (pda? 0.2 : 1))
-	charging.give(charge_rate * delta_time * (pda? 0.2 : 1))	//this is 2558, efficient batteries exist
+	use_power(charge_rate * delta_time * (pda? PDA_CHARGE_RATE_MULTIPLIER : 1))
+	charging.give(charge_rate * delta_time * (pda? PDA_CHARGE_RATE_MULTIPLIER : 1))	//this is 2558, efficient batteries exist
 
 	update_icon()
