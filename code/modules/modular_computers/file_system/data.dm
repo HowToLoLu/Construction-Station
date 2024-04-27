@@ -45,13 +45,10 @@
 	filetype = "PIC"
 	do_not_edit = TRUE
 	///Amount of tiles per GC of data - The area of the photo taken up
-	block_size = 4
-	/// The path the RCS uses to refer to `file_data.picture_image` when sharing with clients
-	var/image_path
+	block_size = 9
 
 /datum/computer_file/data/picture/clone()
 	var/datum/computer_file/data/picture/temp = ..()
-	temp.image_path = image_path
 	return temp
 
 /datum/computer_file/data/picture/set_stored_data(data)
