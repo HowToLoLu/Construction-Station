@@ -20,6 +20,7 @@
 	if(istype(comp.active_program, /datum/computer_file/program/camera))
 		var/datum/computer_file/program/camera/cam_prog = comp.active_program
 		cam_prog.captured = picture
+		comp.ui_update()
 		return
 	else
 		CRASH("A PDA camera item took a picture, but there was no active program capable of handling it!")

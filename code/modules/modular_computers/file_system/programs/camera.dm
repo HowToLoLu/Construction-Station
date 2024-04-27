@@ -29,6 +29,7 @@
 /datum/computer_file/program/camera/kill_program(forced)
 	. = ..()
 	QDEL_NULL(item_camera)
+	error = null
 
 /datum/computer_file/program/camera/on_ui_create(mob/user, datum/tgui/ui)
 	. = ..()
@@ -39,6 +40,7 @@
 /datum/computer_file/program/camera/on_ui_close(mob/user, datum/tgui/tgui)
 	. = ..()
 	QDEL_NULL(item_camera)
+	error = null
 
 /datum/computer_file/program/camera/can_run(mob/user, loud, access_to_check, transfer, list/access)
 	if(!transfer && !holder.holder.get_modular_computer_part(MC_CAMERA))
@@ -48,9 +50,10 @@
 	return ..()
 
 /datum/computer_file/program/camera/attack(atom/target, mob/living/user, params)
-	. = ..()
+	if(captured)
+		return FALSE
 	if(item_camera.hardware_camera.holder == holder.holder)
-		INVOKE_ASYNC(item_camera, TYPE_PROC_REF(/obj/item/camera/pda, captureimage), target, user, capture_width, capture_height)
+		INVOKE_ASYNC(item_camera, TYPE_PROC_REF(/obj/item/camera/pda, captureimage), target, user, params, capture_width, capture_height)
 		return TRUE
 	else
 		stack_trace("Invalid item camera \ref[item_camera] owned by camera program!")
@@ -61,10 +64,10 @@
 	. = ..()
 	switch(action)
 		if("setWidth")
-			capture_width = round(clamp(params["newWidth"], 1, 4))
+			capture_width = clamp(round(params["newWidth"]), 1, 4)
 			return TRUE
 		if("setHeight")
-			capture_width = round(clamp(params["newHeight"], 1, 4))
+			capture_height = clamp(round(params["newHeight"]), 1, 4)
 			return TRUE
 		if("savePicture")
 			var/datum/computer_file/data/picture/temp_file = new()
@@ -77,7 +80,7 @@
 				error = "Could not save picture! Please minimize the app and manage your files, then try again."
 			return TRUE
 		if("discardPicture")
-			captured = null
+			QDEL_NULL(captured)
 			return TRUE
 		if("dismissError")
 			error = null
@@ -99,20 +102,20 @@
 /datum/computer_file/program/camera/ui_data(mob/user)
 	var/list/data = list()
 	if(captured)
-		var/list/picture_data = list()
-		user << browse_rsc(captured.picture_image, captured.id)
-		picture_data["picture_id"] = captured.id
-		picture_data["picture_width"] = captured.psize_x
-		picture_data["picture_height"] = captured.psize_y
-
-		data["picture"] = picture_data
-		data["error"] = error
+		user << browse_rsc(captured.picture_image, "pda_camera_capture.png")
+		data["picture_id"] = "pda_camera_capture.png"
+		data["picture_width"] = captured.psize_x
+		data["picture_height"] = captured.psize_y
+		//data["error_msg"] = error disabled at the moment until I can figure out Modal
 	else
 		var/list/control_data = list()
 		control_data["cur_width"] = capture_width
 		control_data["cur_height"] = capture_height
 
 		data["control_data"] = control_data
+		data["picture_id"] = 0
+		data["picture_width"] = 0
+		data["picture_height"] = 0
 		data["space"] = holder.max_capacity - holder.used_capacity
 
 	return data
