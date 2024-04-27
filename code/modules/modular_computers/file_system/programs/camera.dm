@@ -24,7 +24,7 @@
 /datum/computer_file/program/camera/on_start(mob/living/user)
 	. = ..()
 	if(.)
-		item_camera = new(holder.get_modular_computer_part(MC_CAMERA))
+		item_camera = new(holder.holder.get_modular_computer_part(MC_CAMERA))
 
 /datum/computer_file/program/camera/kill_program(forced)
 	. = ..()
@@ -34,14 +34,14 @@
 	. = ..()
 	stack_trace("on_ui_create!!") //Debug message to learn how this interacts with minimizing programs
 	if(!item_camera)
-		item_camera = new(holder.get_modular_computer_part(MC_CAMERA))
+		item_camera = new(holder.holder.get_modular_computer_part(MC_CAMERA))
 
 /datum/computer_file/program/camera/on_ui_close(mob/user, datum/tgui/tgui)
 	. = ..()
 	QDEL_NULL(item_camera)
 
 /datum/computer_file/program/camera/can_run(mob/user, loud, access_to_check, transfer, list/access)
-	if(!transfer && !holder.get_modular_computer_part(MC_CAMERA))
+	if(!transfer && !holder.holder.get_modular_computer_part(MC_CAMERA))
 		if(loud)
 			to_chat(user, "<span class='warning'>An error flashes onscreen, \"NO CAMERA MODULE FOUND\"</span>")
 		return FALSE
