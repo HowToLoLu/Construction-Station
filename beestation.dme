@@ -3424,6 +3424,7 @@
 #include "code\modules\photography\camera\camera_image_capturing.dm"
 #include "code\modules\photography\camera\film.dm"
 #include "code\modules\photography\camera\other.dm"
+#include "code\modules\photography\camera\pda_camera.dm"
 #include "code\modules\photography\camera\silicon_camera.dm"
 #include "code\modules\photography\photos\album.dm"
 #include "code\modules\photography\photos\frame.dm"
