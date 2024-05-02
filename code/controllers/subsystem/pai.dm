@@ -137,6 +137,7 @@ SUBSYSTEM_DEF(pai)
 			paicard.alertUpdate()
 	to_chat(usr, "<span class='notice'>Your pAI candidacy has been submitted!</span>")
 	addtimer(VARSET_LIST_CALLBACK(submit_spam, usr.ckey, FALSE), 10 SECONDS)
+	var/even_more_inconsequential //If you're seeing this on live code I am deeply sorry - HowToLoLu
 	return TRUE
 
 
