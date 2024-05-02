@@ -49,57 +49,58 @@ if not pr_list.totalCount:
     print("Direct commit detected")
     exit(1)  # Change to '0' if you do not want the action to fail when a direct commit is detected
 
-pr = pr_list[0]
+for k, v in pr_list:
+    pr = pr_list[k]
 
-pr_body = pr.body
-pr_number = pr.number
-pr_author = pr.user.login
+    pr_body = pr.body
+    pr_number = pr.number
+    pr_author = pr.user.login
 
-write_cl = {}
-try:
-    cl = CL_BODY.search(pr_body)
-    cl_list = CL_SPLIT.findall(cl.group(2))
-except AttributeError:
-    print("No CL found!")
-    exit(1)  # Change to '0' if you do not want the action to fail when no CL is provided
+    write_cl = {}
+    try:
+        cl = CL_BODY.search(pr_body)
+        cl_list = CL_SPLIT.findall(cl.group(2))
+    except AttributeError:
+        print("No CL found!")
+        exit(1)  # Change to '0' if you do not want the action to fail when no CL is provided
 
 
-if cl.group(1) is not None:
-    write_cl["author"] = cl.group(1).lstrip()
-else:
-    write_cl["author"] = pr_author
+    if cl.group(1) is not None:
+        write_cl["author"] = cl.group(1).lstrip()
+    else:
+        write_cl["author"] = pr_author
 
-write_cl["delete-after"] = True
+    write_cl["delete-after"] = True
 
-with open(Path.cwd().joinpath("tools/changelog/tags.yml")) as file:
-    tags = yaml.safe_load(file)
+    with open(Path.cwd().joinpath("tools/changelog/tags.yml")) as file:
+        tags = yaml.safe_load(file)
 
-write_cl["changes"] = []
+    write_cl["changes"] = []
 
-for k, v in cl_list:
-    if k in tags["tags"].keys():  # Check to see if there are any valid tags, as determined by tags.yml
-        v = v.rstrip()
-        if v not in list(
-            tags["defaults"].values()
-        ):  # Check to see if the tags are associated with something that isn't the default text
-            write_cl["changes"].append({tags["tags"][k]: v})
+    for k, v in cl_list:
+        if k in tags["tags"].keys():  # Check to see if there are any valid tags, as determined by tags.yml
+            v = v.rstrip()
+            if v not in list(
+                tags["defaults"].values()
+            ):  # Check to see if the tags are associated with something that isn't the default text
+                write_cl["changes"].append({tags["tags"][k]: v})
 
-if write_cl["changes"]:
-    with io.StringIO() as cl_contents:
-        yaml = yaml.YAML()
-        yaml.indent(sequence=4, offset=2)
-        yaml.dump(write_cl, cl_contents)
-        cl_contents.seek(0)
+    if write_cl["changes"]:
+        with io.StringIO() as cl_contents:
+            yaml = yaml.YAML()
+            yaml.indent(sequence=4, offset=2)
+            yaml.dump(write_cl, cl_contents)
+            cl_contents.seek(0)
 
-        # Push the newly generated changelog to the master branch so that it can be compiled
-        repo.create_file(
-            f"html/changelogs/AutoChangeLog-pr-{pr_number}.yml",
-            f"Automatic changelog generation for PR #{pr_number} [ci skip]",
-            content=f"{cl_contents.read()}",
-            branch="master",
-            committer=InputGitAuthor(git_name, git_email),
-        )
-    print("Done!")
-else:
-    print("No CL changes detected!")
-    exit(0)  # Change to a '1' if you want the action to count lacking CL changes as a failure
+            # Push the newly generated changelog to the master branch so that it can be compiled
+            repo.create_file(
+                f"html/changelogs/AutoChangeLog-pr-{pr_number}.yml",
+                f"Automatic changelog generation for PR #{pr_number} [ci skip]",
+                content=f"{cl_contents.read()}",
+                branch="master",
+                committer=InputGitAuthor(git_name, git_email),
+            )
+        print(f"Done generating changes for PR {pr_number}!")
+    else:
+        print(f"No CL changes detected for PR {pr_number}!")
+        exit(0)  # Change to a '1' if you want the action to count lacking CL changes as a failure
