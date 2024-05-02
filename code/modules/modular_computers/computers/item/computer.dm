@@ -12,6 +12,7 @@ GLOBAL_LIST_EMPTY(TabletMessengers) // a list of all active messengers, similar 
 	light_color = "#FFFFFF"
 	light_on = FALSE
 
+	var/inconsequential //Okay if you're actually seeing this on live code then I somehow fucked up - HowToLoLu
 
 	// Whether the computer is turned on.
 	var/enabled = 0
