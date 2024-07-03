@@ -25,12 +25,22 @@
 	banning_key = ROLE_ERT
 
 /datum/antagonist/ert/on_gain()
-	if(random_names)
+	if(random_names || check_records())
 		update_name()
 	forge_objectives()
 	equipERT()
 	owner.store_memory("Your team's shared tracking beacon frequency is [ert_team.ert_frequency].")
 	. = ..()
+
+/// returns whether or not the name we're currently using is used by a crewmember already
+/datum/antagonist/ert/proc/check_records()
+	var/our_name = owner.current.real_name
+	var/list/records = GLOB.data_core.get_security_records()
+	for(var/R in records)
+		var/datum/data/record/record = R
+		if(record.fields["name"] == our_name)
+			return TRUE
+	return FALSE
 
 /datum/antagonist/ert/get_team()
 	return ert_team
