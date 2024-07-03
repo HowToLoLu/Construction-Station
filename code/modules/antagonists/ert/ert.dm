@@ -14,7 +14,7 @@
 	var/leader = FALSE
 	var/datum/outfit/outfit = /datum/outfit/ert/security
 	var/datum/outfit/plasmaman_outfit = /datum/outfit/plasmaman/ert
-	var/role = JOB_NAME_SECURITYOFFICER
+	var/role = JOB_ERT_OFFICER
 	var/list/name_source
 	var/random_names = TRUE
 	can_elimination_hijack = ELIMINATION_PREVENT
@@ -55,27 +55,31 @@
 /datum/antagonist/ert/deathsquad/remove_innate_effects(mob/living/mob_override)
 	REMOVE_TRAIT(owner, TRAIT_DISK_VERIFIER, DEATHSQUAD_TRAIT)
 
-/datum/antagonist/ert/security // kinda handled by the base template but here for completion
+/datum/antagonist/ert/security // mostly handled by the base template
+	name = JOB_ERT_OFFICER
 
 /datum/antagonist/ert/security/red
 	outfit = /datum/outfit/ert/security/alert
 
 /datum/antagonist/ert/engineer
-	role = "Engineer"
+	name = JOB_ERT_ENGINEER
+	role = JOB_ERT_ENGINEER
 	outfit = /datum/outfit/ert/engineer
 
 /datum/antagonist/ert/engineer/red
 	outfit = /datum/outfit/ert/engineer/alert
 
 /datum/antagonist/ert/medic
-	role = JOB_CENTCOM_MEDICAL_DOCTOR
+	name = JOB_ERT_MEDICAL_DOCTOR
+	role = JOB_ERT_MEDICAL_DOCTOR
 	outfit = /datum/outfit/ert/medic
 
 /datum/antagonist/ert/medic/red
 	outfit = /datum/outfit/ert/medic/alert
 
 /datum/antagonist/ert/commander
-	role = "Commander"
+	name = JOB_ERT_COMMANDER
+	role = JOB_ERT_COMMANDER
 	outfit = /datum/outfit/ert/commander
 
 /datum/antagonist/ert/commander/red
@@ -102,7 +106,7 @@
 	owner.holy_role = HOLY_ROLE_PRIEST
 
 /datum/antagonist/ert/chaplain
-	role = JOB_NAME_CHAPLAIN
+	role = JOB_ERT_CHAPLAIN
 	outfit = /datum/outfit/ert/chaplain
 
 /datum/antagonist/ert/chaplain/inquisitor
@@ -120,7 +124,7 @@
 	owner.holy_role = HOLY_ROLE_PRIEST
 
 /datum/antagonist/ert/janitor
-	role = JOB_NAME_JANITOR
+	role = JOB_ERT_JANITOR
 	outfit = /datum/outfit/ert/janitor
 
 /datum/antagonist/ert/janitor/heavy
