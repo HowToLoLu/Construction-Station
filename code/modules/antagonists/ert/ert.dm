@@ -25,8 +25,7 @@
 	banning_key = ROLE_ERT
 
 /datum/antagonist/ert/on_gain()
-	if(random_names || check_records())
-		update_name()
+	update_name()
 	forge_objectives()
 	equipERT()
 	owner.store_memory("Your team's shared tracking beacon frequency is [ert_team.ert_frequency].")
@@ -46,7 +45,14 @@
 	return ert_team
 
 /datum/antagonist/ert/proc/update_name()
-	var/name = "[role] [pick(name_source) || pick(GLOB.last_names)]"
+	if(random_names || check_records())
+		if(iscarbon(owner.current) && !name_source)
+			var/mob/living/carbon/C = owner.current
+			C.real_name = C.dna.species.random_name(C.gender)
+		else
+			owner.current.real_name = pick(name_source) || random_unique_name()
+
+	var/name = "[role] [owner.current.real_name]"
 
 	owner.current.fully_replace_character_name(newname = name)
 	//We don't want to rename objectives and records, so we do ID renaming ourselves
