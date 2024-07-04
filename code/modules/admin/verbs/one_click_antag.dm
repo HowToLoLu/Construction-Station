@@ -385,9 +385,9 @@
 
 				if(!ishumanbasic(ERTOperative) && ertemplate.enforce_human || !(ERTOperative.dna.species.changesource_flags & ERT_SPAWN)) // Don't want any exploding plasmemes
 					ERTOperative.set_species(/datum/species/human)
-					var/backup_human_name = owner.current.client?.prefs.read_character_preference(/datum/preference/name/backup_human)
-					owner.current.fully_replace_character_name(newname = backup_human_name) //Skipping records and stuff
-					owner.current.replace_identification_name(owner.current.real_name,backup_human_name)
+					var/backup_human_name = ERTOperative.client?.prefs.read_character_preference(/datum/preference/name/backup_human)
+					ERTOperative.fully_replace_character_name(newname = backup_human_name) //Skipping records and stuff
+					ERTOperative.replace_identification_name(ERTOperative.real_name,backup_human_name)
 
 				//Give antag datum
 				var/datum/antagonist/ert/ert_antag
