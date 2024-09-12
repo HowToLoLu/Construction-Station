@@ -2146,6 +2146,7 @@ GLOBAL_LIST_EMPTY(features_by_species)
 	if(!CanIgniteMob(H))
 		return TRUE
 	if(H.on_fire)
+		SEND_SIGNAL(H, COMSIG_HUMAN_BURNING)
 		//the fire tries to damage the exposed clothes and items
 		var/list/burning_items = list()
 		var/obscured = H.check_obscured_slots(TRUE)
