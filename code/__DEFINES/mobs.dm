@@ -552,6 +552,17 @@ GLOBAL_LIST_INIT(available_random_trauma_list, list(
 /// Fire layer when you're on fire
 #define FIRE_LAYER 1
 
+//Bitflags for the layers an external organ can draw on
+#define EXTERNAL_FRONT (1 << 1)
+#define EXTERNAL_ADJACENT (1 << 2)
+#define EXTERNAL_BEHIND (1 << 3)
+#define ALL_EXTERNAL_OVERLAYS EXTERNAL_FRONT | EXTERNAL_ADJACENT | EXTERNAL_BEHIND
+
+//The layer external organs draw. These are drawn on the limbs, so the layers are relative to the limb theyre being drawn on
+#define EXTERNAL_FRONT_LAYER 2
+#define EXTERNAL_ADJACENT_LAYER 1
+#define EXTERNAL_BEHIND_LAYER -1
+
 //Mob Overlay Index Shortcuts for alternate_worn_layer, layers
 //Because I *KNOW* somebody will think layer+1 means "above"
 //IT DOESN'T OK, IT MEANS "UNDER"

@@ -44,6 +44,8 @@ GLOBAL_LIST_EMPTY(features_by_species)
 	  */
 	var/list/mutant_bodyparts = list()
 	var/list/mutant_organs = list()		//Internal organs that are unique to this race.
+	///List of external organs to generate. list(typepath of organ = "default iconstate")
+	var/list/external_organs = list()
 
 	var/list/forced_features = list()	// A list of features forced on characters
 
@@ -2221,26 +2223,12 @@ GLOBAL_LIST_EMPTY(features_by_species)
 ////////////
 
 /datum/species/proc/spec_stun(mob/living/carbon/human/H,amount)
-	var/obj/item/organ/wings/wings = H.getorganslot(ORGAN_SLOT_EXTERNAL_WINGS)
-	if(H.getorgan(/obj/item/organ/wings))
-		if(wings.flight_level >= WINGS_FLYING && H.movement_type & FLYING)
+	if(H.movement_type & FLYING)
+		var/obj/item/organ/wings/wings = H.getorganslot(ORGAN_SLOT_EXTERNAL_WINGS)
+		if(wings)
+			toggle_flight(H)
 			flyslip(H)
 	. = max(stunmod + H.physiology.stun_add, 0) * H.physiology.stun_mod * amount
-
-//////////////
-//Space Move//
-//////////////
-
-/datum/species/proc/space_move(mob/living/carbon/human/H)
-	if(H.loc && !isspaceturf(H.loc) && H.getorgan(/obj/item/organ/wings))
-		var/obj/item/organ/wings/wings = H.getorganslot(ORGAN_SLOT_EXTERNAL_WINGS)
-		if(wings.flight_level == WINGS_FLIGHTLESS)
-			var/datum/gas_mixture/current = H.loc.return_air()
-			if(current && (current.return_pressure() >= ONE_ATMOSPHERE*0.85)) //as long as there's reasonable pressure and no gravity, flight is possible
-				return TRUE
-	if(H.movement_type & FLYING)
-		return TRUE
-	return FALSE
 
 /datum/species/proc/negates_gravity(mob/living/carbon/human/H)
 	if(H.movement_type & FLYING)

@@ -186,6 +186,8 @@ Remember to update _globalvars/traits.dm if you're adding/removing/renaming trai
 /// Trait for psyphoza, flag for examine logic
 #define TRAIT_PSYCHIC_SENSE "psychic_sense"
 
+///When people are floating from zero-grav or something, we can move around freely!
+#define TRAIT_FREE_FLOAT_MOVEMENT "free_float_movement"
 /**
  * Atom Traits
  */

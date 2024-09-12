@@ -4074,6 +4074,8 @@
 #include "code\modules\surgery\organs\tongue.dm"
 #include "code\modules\surgery\organs\vocal_cords.dm"
 #include "code\modules\surgery\organs\wings.dm"
+#include "code\modules\surgery\organs\external\organ_external.dm"
+#include "code\modules\surgery\organs\external\wings.dm"
 #include "code\modules\tgchat\message.dm"
 #include "code\modules\tgchat\to_chat.dm"
 #include "code\modules\tgs\includes.dm"
