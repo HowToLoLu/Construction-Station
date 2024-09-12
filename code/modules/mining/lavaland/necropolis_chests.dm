@@ -621,7 +621,7 @@ CREATION_TEST_IGNORE_SUBTYPES(/obj/item/shared_storage/blue)
 			return ..()
 		if(ishuman(C))
 			var/mob/living/carbon/human/H = C
-			var/obj/item/organ/wings/wings = H.getorganslot(ORGAN_SLOT_WINGS)
+			var/obj/item/organ/wings/wings = H.getorganslot(ORGAN_SLOT_EXTERNAL_WINGS)
 			if(H.getorgan(/obj/item/organ/wings))
 				if(wings.flight_level <= WINGS_FLIGHTLESS)
 					wings.flight_level += 1 //upgrade the flight level

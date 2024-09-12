@@ -291,12 +291,12 @@ GLOBAL_LIST_EMPTY(features_by_species)
 		ORGAN_SLOT_TONGUE,
 		ORGAN_SLOT_LIVER,
 		ORGAN_SLOT_STOMACH,
-		ORGAN_SLOT_WINGS
+		ORGAN_SLOT_EXTERNAL_WINGS
 	)
 
 	//if theres no added wing type, we want to avoid adding a null
 	if(isnull(mutantwings))
-		slot_organs -= ORGAN_SLOT_WINGS
+		slot_organs -= ORGAN_SLOT_EXTERNAL_WINGS
 
 	for(var/slot in slot_organs)
 
@@ -2221,7 +2221,7 @@ GLOBAL_LIST_EMPTY(features_by_species)
 ////////////
 
 /datum/species/proc/spec_stun(mob/living/carbon/human/H,amount)
-	var/obj/item/organ/wings/wings = H.getorganslot(ORGAN_SLOT_WINGS)
+	var/obj/item/organ/wings/wings = H.getorganslot(ORGAN_SLOT_EXTERNAL_WINGS)
 	if(H.getorgan(/obj/item/organ/wings))
 		if(wings.flight_level >= WINGS_FLYING && H.movement_type & FLYING)
 			flyslip(H)
@@ -2233,7 +2233,7 @@ GLOBAL_LIST_EMPTY(features_by_species)
 
 /datum/species/proc/space_move(mob/living/carbon/human/H)
 	if(H.loc && !isspaceturf(H.loc) && H.getorgan(/obj/item/organ/wings))
-		var/obj/item/organ/wings/wings = H.getorganslot(ORGAN_SLOT_WINGS)
+		var/obj/item/organ/wings/wings = H.getorganslot(ORGAN_SLOT_EXTERNAL_WINGS)
 		if(wings.flight_level == WINGS_FLIGHTLESS)
 			var/datum/gas_mixture/current = H.loc.return_air()
 			if(current && (current.return_pressure() >= ONE_ATMOSPHERE*0.85)) //as long as there's reasonable pressure and no gravity, flight is possible
@@ -2252,7 +2252,7 @@ GLOBAL_LIST_EMPTY(features_by_species)
 ////////////////
 
 /datum/species/proc/stop_wagging_tail(mob/living/carbon/human/H)
-	var/obj/item/organ/tail/tail = H?.getorganslot(ORGAN_SLOT_TAIL)
+	var/obj/item/organ/tail/tail = H?.getorganslot(ORGAN_SLOT_EXTERNAL_TAIL)
 	tail?.set_wagging(H, FALSE)
 
 ///////////////
@@ -2269,7 +2269,7 @@ GLOBAL_LIST_EMPTY(features_by_species)
 		return FALSE
 
 /datum/species/proc/CanFly(mob/living/carbon/human/H)
-	var/obj/item/organ/wings/wings = H.getorganslot(ORGAN_SLOT_WINGS)
+	var/obj/item/organ/wings/wings = H.getorganslot(ORGAN_SLOT_EXTERNAL_WINGS)
 	if(!H.getorgan(/obj/item/organ/wings))
 		return FALSE
 	if(H.stat || H.body_position == LYING_DOWN)

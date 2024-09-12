@@ -144,11 +144,11 @@
 						var/obj/item/organ/tongue/robot/clockwork/organ = new()
 						organ.Insert(H, TRUE, FALSE)
 						return TRUE
-				if(ORGAN_SLOT_TAIL)
+				if(ORGAN_SLOT_EXTERNAL_TAIL)
 					var/obj/item/organ/tail/clockwork/organ = new()
 					organ.Insert(H, TRUE, FALSE)
 					return TRUE
-				if(ORGAN_SLOT_WINGS)
+				if(ORGAN_SLOT_EXTERNAL_WINGS)
 					var/obj/item/organ/wings/cybernetic/clockwork/organ = new()
 					if(robustbits)
 						organ.flight_level = WINGS_FLYING

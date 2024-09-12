@@ -156,7 +156,7 @@
 	if(!.)
 		return
 	var/mob/living/carbon/human/H = user
-	var/obj/item/organ/tail/tail = H?.getorganslot(ORGAN_SLOT_TAIL)
+	var/obj/item/organ/tail/tail = H?.getorganslot(ORGAN_SLOT_EXTERNAL_TAIL)
 	if(!tail)
 		return
 	tail.toggle_wag(H)
@@ -165,12 +165,12 @@
 	if(!..())
 		return FALSE
 	var/mob/living/carbon/human/H = user
-	return istype(H?.getorganslot(ORGAN_SLOT_TAIL), /obj/item/organ/tail)
+	return istype(H?.getorganslot(ORGAN_SLOT_EXTERNAL_TAIL), /obj/item/organ/tail)
 
 /datum/emote/living/carbon/human/wag/select_message_type(mob/user, intentional)
 	. = ..()
 	var/mob/living/carbon/human/H = user
-	var/obj/item/organ/tail/tail = H.getorganslot(ORGAN_SLOT_TAIL)
+	var/obj/item/organ/tail/tail = H.getorganslot(ORGAN_SLOT_EXTERNAL_TAIL)
 	if(tail?.is_wagging(H))
 		. = null
 
@@ -201,7 +201,7 @@
 		if(H.dna.features["wings"] != "None")
 			return TRUE
 		if(H.dna.features["moth_wings"] != "None")
-			var/obj/item/organ/wings/wings = H.getorganslot(ORGAN_SLOT_WINGS)
+			var/obj/item/organ/wings/wings = H.getorganslot(ORGAN_SLOT_EXTERNAL_WINGS)
 			if(istype(wings))
 				if(wings.flight_level >= WINGS_FLYING)
 					return TRUE
@@ -209,7 +209,7 @@
 /mob/living/carbon/human/proc/Togglewings()
 	if(!dna || !dna.species)
 		return FALSE
-	var/obj/item/organ/wings/wings = getorganslot(ORGAN_SLOT_WINGS)
+	var/obj/item/organ/wings/wings = getorganslot(ORGAN_SLOT_EXTERNAL_WINGS)
 	if(istype(wings))
 		if(ismoth(src) && HAS_TRAIT(src, TRAIT_MOTH_BURNT))
 			return FALSE
