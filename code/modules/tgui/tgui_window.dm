@@ -368,6 +368,8 @@
 			client << link(href_list["url"])
 		if("cacheReloaded")
 			reinitialize()
+		if("chat/resend")
+			SSchat.handle_resend(client, payload)
 		if("byondui_update")
 			update_byondui(payload["id"], payload["mounting"])
 
